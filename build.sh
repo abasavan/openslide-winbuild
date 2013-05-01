@@ -2,7 +2,7 @@
 #
 # A script for building OpenSlide and its dependencies for Windows
 #
-# Copyright (c) 2011-2012 Carnegie Mellon University
+# Copyright (c) 2011-2013 Carnegie Mellon University
 # All rights reserved.
 #
 # This script is free software: you can redistribute it and/or modify it
@@ -47,19 +47,19 @@ openslidejava_name="OpenSlide Java"
 # Package versions
 configguess_ver="fc7ed3ed"
 zlib_ver="1.2.7"
-png_ver="1.5.13"
+png_ver="1.6.1"
 jpeg_ver="1.2.1"
 tiff_ver="4.0.3"
 openjpeg_ver="1.5.1"
 iconv_ver="1.14"
-gettext_ver="0.18.1.1"
-ffi_ver="3.0.11"
-glib_basever="2.34"
-glib_ver="${glib_basever}.3"
+gettext_ver="0.18.2"
+ffi_ver="3.0.13"
+glib_basever="2.36"
+glib_ver="${glib_basever}.0"
 pixman_ver="0.28.2"
-cairo_ver="1.12.8"
+cairo_ver="1.12.14"
 xml_ver="2.9.0"
-openslide_ver="3.3.2.1"
+openslide_ver="3.3.3"
 openslidejava_ver="0.11.0"
 
 # Tarball URLs
@@ -104,7 +104,7 @@ jpeg_licenses="README README-turbo.txt"
 tiff_licenses="COPYRIGHT"
 openjpeg_licenses="LICENSE"
 iconv_licenses="COPYING.LIB"
-gettext_licenses="COPYING intl/COPYING.LIB-2.0 intl/COPYING.LIB-2.1"
+gettext_licenses="COPYING intl/COPYING.LIB"
 ffi_licenses="LICENSE"
 glib_licenses="COPYING"
 pixman_licenses="COPYING"
@@ -131,7 +131,7 @@ openslidejava_dependencies="openslide"
 
 # Build artifacts
 zlib_artifacts="zlib1.dll"
-png_artifacts="libpng15-15.dll"
+png_artifacts="libpng16-16.dll"
 jpeg_artifacts="libjpeg-62.dll"
 tiff_artifacts="libtiff-5.dll"
 openjpeg_artifacts="libopenjpeg-1.dll"
@@ -357,11 +357,8 @@ build_one() {
         make install
         ;;
     glib)
-        # DBUS_DAEMON: Work around Unixisms in gdbus-proxy test
-        # https://bugzilla.gnome.org/show_bug.cgi?id=684145
         do_configure \
-                --with-threads=win32 \
-                DBUS_DAEMON=no-such-dbus-daemon
+                --with-threads=win32
         make $parallel
         if [ "$can_test" = yes ] ; then
             # make check
@@ -407,6 +404,31 @@ build_one() {
             make check
         fi
         make install
+        # Rename import library members to fix problems with /OPT:REF
+        # http://sourceware.org/ml/binutils/2010-03/msg00126.html
+        # http://sourceware.org/ml/binutils/2010-03/msg00175.html
+        # http://lists.andrew.cmu.edu/pipermail/openslide-users/2013-April/000597.html
+        local tempdir implib dynlib
+        tempdir="${root}/lib/implib"
+        implib="../libopenslide.dll.a"
+        dynlib="libopenslide-0.dll"
+        mkdir "$tempdir"
+        pushd "$tempdir" >/dev/null
+        # If the archive contains <= 3 unique member names, assume it does not
+        # need to be patched.
+        if [ $(${build_host}-ar t "$implib" | sort -u | wc -l) -gt 3 ]; then
+            ${build_host}-ar x "$implib"
+            rm "$implib"
+            for file in *
+            do
+                mv "$file" "$dynlib"
+                ${build_host}-ar q "$implib" "$dynlib"
+                rm "$dynlib"
+            done
+            chmod +x "$implib"
+        fi
+        popd >/dev/null
+        rmdir "$tempdir"
         ;;
     openslidejava)
         do_configure \
