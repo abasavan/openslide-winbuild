@@ -59,7 +59,7 @@ glib_ver="${glib_basever}.0"
 pixman_ver="0.28.2"
 cairo_ver="1.12.14"
 xml_ver="2.9.0"
-openslide_ver="3.3.3"
+openslide_ver="3.3.3.1"
 openslidejava_ver="0.11.0"
 
 # Tarball URLs
@@ -71,13 +71,11 @@ tiff_url="ftp://ftp.remotesensing.org/pub/libtiff/tiff-${tiff_ver}.tar.gz"
 openjpeg_url="http://openjpeg.googlecode.com/files/openjpeg-${openjpeg_ver}.tar.gz"
 iconv_url="http://ftp.gnu.org/pub/gnu/libiconv/libiconv-${iconv_ver}.tar.gz"
 gettext_url="http://ftp.gnu.org/pub/gnu/gettext/gettext-${gettext_ver}.tar.gz"
-#ffi_url="ftp://sourceware.org/pub/libffi/libffi-${ffi_ver}.tar.gz"
 ffi_url="http://sourceware.mirrors.tds.net/pub/sourceware.org/libffi/libffi-${ffi_ver}.tar.gz"
 glib_url="http://ftp.gnome.org/pub/gnome/sources/glib/${glib_basever}/glib-${glib_ver}.tar.xz"
 pixman_url="http://cairographics.org/releases/pixman-${pixman_ver}.tar.gz"
 cairo_url="http://cairographics.org/releases/cairo-${cairo_ver}.tar.xz"
 xml_url="ftp://xmlsoft.org/libxml2/libxml2-${xml_ver}.tar.gz"
-#openslide_url="http://download.openslide.org/releases/openslide/openslide-${openslide_ver}.tar.xz"
 openslide_url="https://github.com/abasavan/openslide/archive/v${openslide_ver}.tar.gz"
 openslidejava_url="http://download.openslide.org/releases/openslide-java/openslide-java-${openslidejava_ver}.tar.xz"
 
@@ -433,7 +431,7 @@ build_one() {
     openslidejava)
         do_configure \
                 ANT_HOME="${ant_home}" \
-                JAVA_HOME="${java_home}"
+                JAVA_HOME="${JAVA_HOME}"
         make $parallel
         make install
         pushd "${root}/lib/openslide-java" >/dev/null
